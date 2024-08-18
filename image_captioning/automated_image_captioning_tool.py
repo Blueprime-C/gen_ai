@@ -9,13 +9,14 @@ from transformers import AutoProcessor, BlipForConditionalGeneration
 processor = AutoProcessor.from_pretrained('Salesforce/blip-image-captioning-base')
 model = BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-base')
 
-def auto_captor(url, file_path) -> str:
+def auto_captor(url, file_path, progress=gr.Progress()) -> str:
+    progress(0, 'Starting...')
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     img_elements = soup.find_all('img')
     status = []
     with (open(file_path, 'w') as fp):
-        for img in img_elements:
+        for img in progress.tqdm(img_elements):
             img_url = img['src']
 
             # Correct the image URL if it's malformed
@@ -51,8 +52,8 @@ UI = gr.Interface(
     outputs="text",
     title="Automated Image Captioning Tool",
     description="Enter an valid url for automatic image captioning.",
-    example_labels="https://example.com"
-)
+    example_labels=["https://example.com"]
+).queue()
 
 
 if __name__ == '__main__':
